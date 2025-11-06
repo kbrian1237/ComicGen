@@ -2,16 +2,17 @@ import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 
-// Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+// Your web app's Firebase configuration is now loaded from environment variables
+// This is more secure and flexible for deployment.
+// See the .env.example file for the required variables.
 export const firebaseConfig = {
-  apiKey: "AIzaSyDP3G5nFgbMLi1bivIevZfxe5Hjym0c7_E",
-  authDomain: "comicgen-c0096.firebaseapp.com",
-  projectId: "comicgen-c0096",
-  storageBucket: "comicgen-c0096.firebasestorage.app",
-  messagingSenderId: "1048254624589",
-  appId: "1:1048254624589:web:f15cfc683b2cf6fe13fd04",
-  measurementId: "G-B90FZ8QN6P"
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
 };
 
 // Initialize Firebase
