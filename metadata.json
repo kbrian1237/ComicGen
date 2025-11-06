@@ -1,0 +1,5 @@
+{
+  "name": "Comic Book Storyboard Generator",
+  "description": "Upload a comic book script to generate a sequence of storyboard images, and use the integrated chat bot to ask questions.",
+  "requestFramePermissions": []
+}

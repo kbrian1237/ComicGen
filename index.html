@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Comic Book Storyboard Generator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+  <script type="importmap">
+{
+  "imports": {
+    "react/": "https://aistudiocdn.com/react@^19.2.0/",
+    "react": "https://aistudiocdn.com/react@^19.2.0",
+    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.28.0",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+    "jspdf": "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js",
+    "firebase/app": "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js",
+    "firebase/auth": "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js",
+    "firebase/firestore": "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js",
+    "firebase/": "https://aistudiocdn.com/firebase@^12.5.0/"
+  }
+}
+</script>
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #0f172a;
+      background-image: radial-gradient(circle at 1px 1px, rgba(255,255,255,0.05) 1px, transparent 0);
+      background-size: 25px 25px;
+    }
+    .glass-card {
+      background: rgba(30, 41, 59, 0.6);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+    }
+     .btn-primary {
+      @apply w-full px-6 py-3 text-lg font-bold text-white bg-cyan-600 rounded-lg hover:bg-cyan-700 disabled:bg-gray-600 disabled:cursor-not-allowed transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-cyan-800;
+    }
+    .btn-secondary {
+      @apply px-6 py-3 text-lg font-bold text-cyan-400 bg-slate-700/50 rounded-lg hover:bg-slate-700 disabled:bg-gray-600 disabled:cursor-not-allowed transition-all duration-300 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-cyan-800;
+    }
+    .style-card {
+      @apply relative aspect-[4/3] rounded-lg overflow-hidden cursor-pointer transition-all duration-300 transform hover:scale-105 border-4 border-transparent;
+    }
+    .style-card.selected {
+      @apply border-cyan-400 scale-105 shadow-[0_0_20px_rgba(34,211,238,0.7)];
+    }
+    .style-card .overlay {
+      @apply absolute inset-0 bg-gradient-to-t from-black/80 to-transparent;
+    }
+    .style-card h3 {
+      @apply absolute bottom-3 left-3 text-white font-bold text-lg;
+    }
+    .radio-label {
+        @apply inline-flex items-center justify-center px-4 py-2 text-gray-300 bg-gray-700 border-2 border-gray-600 rounded-md cursor-pointer hover:bg-gray-600 transition-colors;
+    }
+    .radio-input:checked + .radio-label {
+        @apply bg-cyan-600 border-cyan-400 text-white shadow-[0_0_15px_rgba(34,211,238,0.5)];
+    }
+    .paper-texture {
+      background-color: #f8f8f2;
+      background-image: url("data:image/svg+xml,%3Csvg width='6' height='6' viewBox='0 0 6 6' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23e0e0e0' fill-opacity='0.4' fill-rule='evenodd'%3E%3Cpath d='M5 0h1L0 6V5zM6 5v1H5z'/%3E%3C/g%3E%3C/svg%3E");
+    }
+    /* Simple fade-in animation */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-fade-in {
+        animation: fadeIn 0.5s ease-out forwards;
+    }
+  </style>
+</head>
+  <body class="bg-slate-900 text-white">
+    <div id="root"></div>
+  </body>
+</html>
