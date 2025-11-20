@@ -1,34 +1,33 @@
 import { GoogleGenAI, Type, Chat, GenerateImagesResponse } from "@google/genai";
 import { PanelDescription, Character, Scene } from '../types';
 
-// Fix: Update Gemini API initialization to use process.env.API_KEY as per @google/genai guidelines.
-// This also resolves the original TypeScript error for import.meta.env.
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+// Initialize Gemini API with Vite environment variable
+const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GEMINI_API_KEY });
 let chat: Chat | null = null;
 
 // Helper function to retry API calls on rate limit errors with exponential backoff
 const withRetry = async <T,>(
-  apiCall: () => Promise<T>,
-  retries = 3,
-  delay = 2000
+    apiCall: () => Promise<T>,
+    retries = 3,
+    delay = 2000
 ): Promise<T> => {
-  try {
-    return await apiCall();
-  } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    if (
-      retries > 0 &&
-      (errorMessage.includes('429') || 
-       errorMessage.toLowerCase().includes('resource_exhausted') ||
-       errorMessage.toLowerCase().includes('quota exceeded'))
-    ) {
-      const nextDelay = delay * 2; // Exponential backoff
-      console.warn(`API quota exceeded or rate limit hit. Retrying in ${nextDelay / 1000}s... (${retries} retries left)`);
-      await new Promise(resolve => setTimeout(resolve, nextDelay));
-      return withRetry(apiCall, retries - 1, nextDelay);
+    try {
+        return await apiCall();
+    } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        if (
+            retries > 0 &&
+            (errorMessage.includes('429') ||
+                errorMessage.toLowerCase().includes('resource_exhausted') ||
+                errorMessage.toLowerCase().includes('quota exceeded'))
+        ) {
+            const nextDelay = delay * 2; // Exponential backoff
+            console.warn(`API quota exceeded or rate limit hit. Retrying in ${nextDelay / 1000}s... (${retries} retries left)`);
+            await new Promise(resolve => setTimeout(resolve, nextDelay));
+            return withRetry(apiCall, retries - 1, nextDelay);
+        }
+        throw error;
     }
-    throw error;
-  }
 };
 
 const CHARACTER_EXTRACTION_PROMPT = `
@@ -246,83 +245,83 @@ Ensure the JSON is well-formed.
 `;
 
 export const parseScriptIntoPanels = async (script: string): Promise<PanelDescription[]> => {
-  const prompt = SCRIPT_PARSING_PROMPT.replace('[SCRIPT_CONTENT]', script);
-  try {
-    const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
-      contents: prompt,
-      config: {
-        responseMimeType: 'application/json',
-        responseSchema: {
-          type: Type.ARRAY,
-          items: {
-            type: Type.OBJECT,
-            properties: {
-              sceneId: {
-                type: Type.STRING,
-                description: 'The scene heading this panel belongs to.'
-              },
-              description: {
-                type: Type.STRING,
-                description: 'A detailed visual description of the comic panel.',
-              },
-              characters: {
-                type: Type.ARRAY,
-                items: {
-                  type: Type.STRING,
+    const prompt = SCRIPT_PARSING_PROMPT.replace('[SCRIPT_CONTENT]', script);
+    try {
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash',
+            contents: prompt,
+            config: {
+                responseMimeType: 'application/json',
+                responseSchema: {
+                    type: Type.ARRAY,
+                    items: {
+                        type: Type.OBJECT,
+                        properties: {
+                            sceneId: {
+                                type: Type.STRING,
+                                description: 'The scene heading this panel belongs to.'
+                            },
+                            description: {
+                                type: Type.STRING,
+                                description: 'A detailed visual description of the comic panel.',
+                            },
+                            characters: {
+                                type: Type.ARRAY,
+                                items: {
+                                    type: Type.STRING,
+                                },
+                                description: 'A list of character names present in the panel.'
+                            },
+                            shotType: {
+                                type: Type.STRING,
+                                description: 'The camera perspective for the panel.'
+                            }
+                        },
+                        required: ['sceneId', 'description', 'characters', 'shotType'],
+                    },
                 },
-                description: 'A list of character names present in the panel.'
-              },
-              shotType: {
-                  type: Type.STRING,
-                  description: 'The camera perspective for the panel.'
-              }
             },
-            required: ['sceneId', 'description', 'characters', 'shotType'],
-          },
-        },
-      },
-    });
+        });
 
-    const jsonString = response.text;
-    const parsedData = JSON.parse(jsonString);
+        const jsonString = response.text;
+        const parsedData = JSON.parse(jsonString);
 
-    if (!Array.isArray(parsedData) || !parsedData.every(item => typeof item.description === 'string' && Array.isArray(item.characters) && typeof item.sceneId === 'string' && typeof item.shotType === 'string')) {
-        throw new Error("Invalid data structure received from API.");
+        if (!Array.isArray(parsedData) || !parsedData.every(item => typeof item.description === 'string' && Array.isArray(item.characters) && typeof item.sceneId === 'string' && typeof item.shotType === 'string')) {
+            throw new Error("Invalid data structure received from API.");
+        }
+
+        return parsedData;
+    } catch (error) {
+        console.error("Error parsing script:", error);
+        throw new Error("Failed to parse the script. The script might be too complex or the format is not recognized.");
     }
-    
-    return parsedData;
-  } catch (error) {
-    console.error("Error parsing script:", error);
-    throw new Error("Failed to parse the script. The script might be too complex or the format is not recognized.");
-  }
 };
 
 export const generateImageForPanel = async (
-    panelDescription: string, 
-    characterDescriptions: string[], 
+    panelDescription: string,
+    characterDescriptions: string[],
     sceneDescription: string,
     stylePrompt: string,
     aspectRatio: '1:1' | '3:4' | '4:3',
     shotType?: string
 ): Promise<string> => {
-    
+
     const shotTypeString = shotType ? `Shot Type: "${shotType}".` : '';
     const sceneString = `Scene Environment: "${sceneDescription}". This description must be followed exactly for visual consistency.`;
     let characterString = '';
     if (characterDescriptions.length > 0) {
-      characterString = `Characters present (must be visually consistent with descriptions): ${characterDescriptions.join(' ')}.`;
+        characterString = `Characters present (must be visually consistent with descriptions): ${characterDescriptions.join(' ')}.`;
     }
-    
+
     const fullPrompt = `A comic book panel in the art style of "${stylePrompt}". ${shotTypeString} The main action of the panel is: "${panelDescription}". ${sceneString} ${characterString} Do not include text or speech bubbles.`;
-    
+
     try {
         const apiCall = () => ai.models.generateImages({
             model: 'imagen-4.0-generate-001',
             prompt: fullPrompt,
             config: {
-              numberOfImages: 1,
-              aspectRatio: aspectRatio,
+                numberOfImages: 1,
+                aspectRatio: aspectRatio,
             },
         });
 
@@ -350,11 +349,11 @@ export const generateCoverImage = async (scriptSummary: string, stylePrompt: str
             model: 'imagen-4.0-generate-001',
             prompt: fullPrompt,
             config: {
-              numberOfImages: 1,
-              aspectRatio: '3:4', // Standard comic cover aspect ratio
+                numberOfImages: 1,
+                aspectRatio: '3:4', // Standard comic cover aspect ratio
             },
         });
-        
+
         // Fix: Explicitly type the response from withRetry.
         const response = await withRetry<GenerateImagesResponse>(apiCall);
 
@@ -430,7 +429,7 @@ export const layoutPanelsIntoPages = async (panelDescriptions: string[]): Promis
         if (!Array.isArray(parsedData) || !parsedData.every(p => Array.isArray(p.panel_indices) && typeof p.layout === 'string')) {
             throw new Error("Invalid page layout data structure received from API.");
         }
-        
+
         return parsedData;
 
     } catch (error) {
